@@ -10,6 +10,7 @@ Uma API RESTful para gerenciamento de funcionários, desenvolvida com Node.js e 
 - Swagger (Documentação da API)
 - CORS
 - dotenv
+- Nodemon (Desenvolvimento)
 
 ## 📋 Pré-requisitos
 
@@ -22,7 +23,7 @@ Uma API RESTful para gerenciamento de funcionários, desenvolvida com Node.js e 
 1. Clone o repositório:
 
 ```bash
-git clone [URL_DO_REPOSITÓRIO]
+git clone https://github.com/HubMaia/API-Empresa.git
 ```
 
 2. Instale as dependências:
@@ -45,7 +46,7 @@ PORT=3000
 4. Inicie o servidor:
 
 ```bash
-node server.js
+npm start
 ```
 
 ## 📚 Documentação da API
@@ -64,13 +65,17 @@ http://localhost:3000/api-docs
 ├── routes/         # Rotas da API
 ├── public/         # Arquivos estáticos
 ├── swagger/        # Documentação Swagger
+├── node_modules/   # Dependências do projeto
 ├── server.js       # Arquivo principal
-└── package.json    # Dependências e scripts
+├── package.json    # Dependências e scripts
+├── package-lock.json # Versões exatas das dependências
+└── .gitignore      # Arquivos ignorados pelo Git
 ```
 
 ## 🛠️ Scripts Disponíveis
 
-- `node server.js`: Inicia o servidor
+- `npm start`: Inicia o servidor em modo de desenvolvimento com nodemon
+- `npm test`: Executa os testes (ainda não implementado)
 
 ## 📝 Licença
 
