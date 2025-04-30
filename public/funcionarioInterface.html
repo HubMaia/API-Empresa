@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interface de Funcionários</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-container {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        .action-buttons button {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        .delete-btn {
+            background-color: #dc3545;
+        }
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+        .edit-btn {
+            background-color: #ffc107;
+            color: #000;
+        }
+        .edit-btn:hover {
+            background-color: #e0a800;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gerenciamento de Funcionários</h1>
+        
+        <div class="form-container">
+            <h2>Adicionar/Editar Funcionário</h2>
+            <form id="funcionarioForm">
+                <input type="hidden" id="funcionarioId">
+                <div class="form-group">
+                    <label for="nome">Nome:</label>
+                    <input type="text" id="nome" required>
+                </div>
+                <div class="form-group">
+                    <label for="cargo">Cargo:</label>
+                    <input type="text" id="cargo" required>
+                </div>
+                <div class="form-group">
+                    <label for="salario">Salário:</label>
+                    <input type="number" id="salario" required>
+                </div>
+                <button type="submit">Salvar</button>
+                <button type="button" onclick="resetForm()">Cancelar</button>
+            </form>
+        </div>
+
+        <div class="table-container">
+            <h2>Lista de Funcionários</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome</th>
+                        <th>Cargo</th>
+                        <th>Salário</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="funcionariosTable">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Função para carregar todos os funcionários
+        async function loadFuncionarios() {
+            try {
+                const response = await fetch('/funcionarios');
+                const funcionarios = await response.json();
+                const tableBody = document.getElementById('funcionariosTable');
+                tableBody.innerHTML = '';
+
+                funcionarios.forEach(funcionario => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${funcionario.id}</td>
+                        <td>${funcionario.nome}</td>
+                        <td>${funcionario.cargo}</td>
+                        <td>R$ ${funcionario.salario.toFixed(2)}</td>
+                        <td class="action-buttons">
+                            <button class="edit-btn" onclick="editFuncionario(${funcionario.id})">Editar</button>
+                            <button class="delete-btn" onclick="deleteFuncionario(${funcionario.id})">Excluir</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Erro ao carregar funcionários:', error);
+                alert('Erro ao carregar funcionários');
+            }
+        }
+
+        // Função para adicionar/editar funcionário
+        document.getElementById('funcionarioForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const funcionarioId = document.getElementById('funcionarioId').value;
+            const funcionario = {
+                nome: document.getElementById('nome').value,
+                cargo: document.getElementById('cargo').value,
+                salario: parseFloat(document.getElementById('salario').value)
+            };
+
+            try {
+                const url = funcionarioId ? `/funcionarios/${funcionarioId}` : '/funcionarios';
+                const method = funcionarioId ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(funcionario)
+                });
+
+                if (response.ok) {
+                    resetForm();
+                    loadFuncionarios();
+                    alert(funcionarioId ? 'Funcionário atualizado com sucesso!' : 'Funcionário adicionado com sucesso!');
+                } else {
+                    throw new Error('Erro ao salvar funcionário');
+                }
+            } catch (error) {
+                console.error('Erro ao salvar funcionário:', error);
+                alert('Erro ao salvar funcionário');
+            }
+        });
+
+        // Função para editar funcionário
+        async function editFuncionario(id) {
+            try {
+                const response = await fetch(`/funcionarios/${id}`);
+                const funcionario = await response.json();
+
+                document.getElementById('funcionarioId').value = funcionario.id;
+                document.getElementById('nome').value = funcionario.nome;
+                document.getElementById('cargo').value = funcionario.cargo;
+                document.getElementById('salario').value = funcionario.salario;
+            } catch (error) {
+                console.error('Erro ao carregar funcionário:', error);
+                alert('Erro ao carregar funcionário');
+            }
+        }
+
+        // Função para excluir funcionário
+        async function deleteFuncionario(id) {
+            if (confirm('Tem certeza que deseja excluir este funcionário?')) {
+                try {
+                    const response = await fetch(`/funcionarios/${id}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (response.ok) {
+                        loadFuncionarios();
+                        alert('Funcionário excluído com sucesso!');
+                    } else {
+                        throw new Error('Erro ao excluir funcionário');
+                    }
+                } catch (error) {
+                    console.error('Erro ao excluir funcionário:', error);
+                    alert('Erro ao excluir funcionário');
+                }
+            }
+        }
+
+        // Função para resetar o formulário
+        function resetForm() {
+            document.getElementById('funcionarioForm').reset();
+            document.getElementById('funcionarioId').value = '';
+        }
+
+        // Carregar funcionários quando a página carregar
+        document.addEventListener('DOMContentLoaded', loadFuncionarios);
+    </script>
+</body>
+</html> 
